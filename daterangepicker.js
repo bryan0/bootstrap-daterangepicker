@@ -39,7 +39,7 @@
         this.autoApply = false;
         this.singleDatePicker = false;
         this.showDropdowns = false;
-        this.showLeftMonthOnly = false;
+        this.singleMonthView = false;
         this.showWeekNumbers = false;
         this.showISOWeekNumbers = false;
         this.showCustomRangeLabel = true;
@@ -229,9 +229,6 @@
         if (typeof options.showDropdowns === 'boolean')
             this.showDropdowns = options.showDropdowns;
 
-        if (typeof options.showLeftMonthOnly === 'boolean')
-            this.showLeftMonthOnly = options.showLeftMonthOnly;
-
         if (typeof options.showCustomRangeLabel === 'boolean')
             this.showCustomRangeLabel = options.showCustomRangeLabel;
 
@@ -240,6 +237,9 @@
             if (this.singleDatePicker)
                 this.endDate = this.startDate.clone();
         }
+        
+        if (typeof options.singleMonthView === 'boolean' && !this.singleDatePicker)
+            this.singleMonthView = options.singleMonthView;
 
         if (typeof options.timePicker === 'boolean')
             this.timePicker = options.timePicker;
@@ -373,7 +373,7 @@
             this.container.find('.applyBtn, .cancelBtn').addClass('hide');
         }
 
-        if (this.showLeftMonthOnly)
+        if (this.singleMonthView)
             this.container.find('.calendar.right').hide();
 
         if (this.singleDatePicker) {
@@ -618,7 +618,7 @@
 
             this.renderCalendar('left');
 
-            if (!this.showLeftMonthOnly) {
+            if (!this.singleMonthView) {
                 this.renderCalendar('right');
             }
 
@@ -753,7 +753,7 @@
             }
 
             html += '<th colspan="5" class="month">' + dateHtml + '</th>';
-            if ((!maxDate || maxDate.isAfter(calendar.lastDay)) && (!this.linkedCalendars || side == 'right' || this.singleDatePicker || this.showLeftMonthOnly)) {
+            if ((!maxDate || maxDate.isAfter(calendar.lastDay)) && (!this.linkedCalendars || side == 'right' || this.singleDatePicker || this.singleMonthView)) {
                 html += '<th class="next available"><i class="fa fa-' + arrow.right + ' glyphicon glyphicon-' + arrow.right + '"></i></th>';
             } else {
                 html += '<th></th>';
@@ -1030,7 +1030,7 @@
             if (this.container.find('input[name=daterangepicker_start]').is(":focus") || this.container.find('input[name=daterangepicker_end]').is(":focus"))
                 return;
 
-            if (this.showLeftMonthOnly && this.endDate) {
+            if (this.singleMonthView && this.endDate) {
                 this.container.find('input[name=daterangepicker_start]').val(this.startDate.format(this.locale.format) + this.locale.separator + this.endDate.format(this.locale.format));
                 return;
             }
@@ -1038,7 +1038,7 @@
             if (this.endDate)
                 this.container.find('input[name=daterangepicker_end]').val(this.endDate.format(this.locale.format));
 
-            if (this.singleDatePicker || this.showLeftMonthOnly || (this.endDate && (this.startDate.isBefore(this.endDate) || this.startDate.isSame(this.endDate)))) {
+            if (this.singleDatePicker || this.singleMonthView || (this.endDate && (this.startDate.isBefore(this.endDate) || this.startDate.isSame(this.endDate)))) {
                 this.container.find('button.applyBtn').removeAttr('disabled');
             } else {
                 this.container.find('button.applyBtn').attr('disabled', 'disabled');
@@ -1201,7 +1201,7 @@
 
             if (label == this.locale.customRangeLabel) {
                 this.updateView();
-            } else if (this.showLeftMonthOnly) {
+            } else if (this.singleMonthView) {
                 var dates = this.ranges[label];
                 this.container.find('input[name=daterangepicker_start]').val(dates[0].format(this.locale.format) + this.locale.separator + dates[1].format(this.locale.format));
             } else {
@@ -1274,7 +1274,7 @@
             var date = cal.hasClass('left') ? this.leftCalendar.calendar[row][col] : this.rightCalendar.calendar[row][col];
 
             if (this.endDate && !this.container.find('input[name=daterangepicker_start]').is(":focus")) {
-                if (!this.showLeftMonthOnly) {
+                if (!this.singleMonthView) {
                     this.container.find('input[name=daterangepicker_start]').val(date.format(this.locale.format));
                 }
             } else if (!this.endDate && !this.container.find('input[name=daterangepicker_end]').is(":focus")) {
@@ -1513,7 +1513,7 @@
             var isRight = $(e.target).closest('.calendar').hasClass('right');
 
             var start, end
-            if (this.showLeftMonthOnly) {
+            if (this.singleMonthView) {
                 dates = this.container.find('input[name="daterangepicker_start"]').val().split(this.locale.separator)
                 start = moment(dates[0], this.locale.format)
                 end = moment(dates[1], this.locale.format)
