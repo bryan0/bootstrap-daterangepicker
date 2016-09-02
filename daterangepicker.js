@@ -450,7 +450,7 @@
         //
 
         if (this.element.is('input') && !this.singleDatePicker && this.autoUpdateInput) {
-            this.element.val(this.startDate.format(this.locale.format) + this.locale.separator + this.endDate.format(this.locale.format));
+            this.element.val(this.rangeFormat(this.startDate, this.endDate));
             this.element.trigger('change');
         } else if (this.element.is('input') && this.autoUpdateInput) {
             this.element.val(this.startDate.format(this.locale.format));
@@ -502,7 +502,7 @@
                 this.endDate = moment(endDate);
 
             if (!this.timePicker)
-                this.endDate = this.endDate.endOf('day');
+                this.endDate =this.rangeFormat( this.endDate.endOf('day');
 
             if (this.timePicker && this.timePickerIncrement)
                 this.endDate.minute(Math.round(this.endDate.minute() / this.timePickerIncrement) * this.timePickerIncrement);
@@ -1031,9 +1031,10 @@
                 return;
 
             if (this.singleMonthView && this.endDate) {
-                this.container.find('input[name=daterangepicker_start]').val(this.startDate.format(this.locale.format) + this.locale.separator + this.endDate.format(this.locale.format));
+                this.container.find('input[name=daterangepicker_start]').val(this.rangeFormat(this.startDate, this.endDate));
                 return;
             }
+
           this.container.find('input[name=daterangepicker_start]').val(this.startDate.format(this.locale.format));
             if (this.endDate)
                 this.container.find('input[name=daterangepicker_end]').val(this.endDate.format(this.locale.format));
@@ -1203,7 +1204,7 @@
                 this.updateView();
             } else if (this.singleMonthView) {
                 var dates = this.ranges[label];
-                this.container.find('input[name=daterangepicker_start]').val(dates[0].format(this.locale.format) + this.locale.separator + dates[1].format(this.locale.format));
+                this.container.find('input[name=daterangepicker_start]').val(this.rangeFormat(dates[0], dates[1]));
             } else {
                 var dates = this.ranges[label];
                 this.container.find('input[name=daterangepicker_start]').val(dates[0].format(this.locale.format));
@@ -1614,7 +1615,7 @@
 
         updateElement: function() {
             if (this.element.is('input') && !this.singleDatePicker && this.autoUpdateInput) {
-                this.element.val(this.startDate.format(this.locale.format) + this.locale.separator + this.endDate.format(this.locale.format));
+                this.element.val(this.rangeFormat(this.startDate, this.endDate));
                 this.element.trigger('change');
             } else if (this.element.is('input') && this.autoUpdateInput) {
                 this.element.val(this.startDate.format(this.locale.format));
@@ -1626,6 +1627,13 @@
             this.container.remove();
             this.element.off('.daterangepicker');
             this.element.removeData();
+        },
+
+        rangeFormat: function(start_date, end_date) {
+            date_range = start_date.format(this.locale.format);
+            if (end_date)
+                date_range += this.locale.separator + end_date.format(this.locale.format);
+            return date_range;
         }
 
     };
