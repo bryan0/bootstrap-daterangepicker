@@ -39,6 +39,7 @@
         this.autoApply = false;
         this.singleDatePicker = false;
         this.showDropdowns = false;
+        this.showLeftMonthOnly = false;
         this.showWeekNumbers = false;
         this.showISOWeekNumbers = false;
         this.showCustomRangeLabel = true;
@@ -228,6 +229,9 @@
         if (typeof options.showDropdowns === 'boolean')
             this.showDropdowns = options.showDropdowns;
 
+        if (typeof options.showLeftMonthOnly === 'boolean')
+            this.showLeftMonthOnly = options.showLeftMonthOnly;
+
         if (typeof options.showCustomRangeLabel === 'boolean')
             this.showCustomRangeLabel = options.showCustomRangeLabel;
 
@@ -368,6 +372,9 @@
         } else if (this.autoApply) {
             this.container.find('.applyBtn, .cancelBtn').addClass('hide');
         }
+
+        if (this.showLeftMonthOnly)
+            this.container.find('.calendar.right').hide();
 
         if (this.singleDatePicker) {
             this.container.addClass('single');
@@ -610,7 +617,10 @@
             }
 
             this.renderCalendar('left');
-            this.renderCalendar('right');
+
+            if (!this.showLeftMonthOnly) {
+                this.renderCalendar('right');
+            }
 
             //highlight any predefined range matching the current start and end dates
             this.container.find('.ranges li').removeClass('active');
@@ -743,7 +753,7 @@
             }
 
             html += '<th colspan="5" class="month">' + dateHtml + '</th>';
-            if ((!maxDate || maxDate.isAfter(calendar.lastDay)) && (!this.linkedCalendars || side == 'right' || this.singleDatePicker)) {
+            if ((!maxDate || maxDate.isAfter(calendar.lastDay)) && (!this.linkedCalendars || side == 'right' || this.singleDatePicker || this.showLeftMonthOnly)) {
                 html += '<th class="next available"><i class="fa fa-' + arrow.right + ' glyphicon glyphicon-' + arrow.right + '"></i></th>';
             } else {
                 html += '<th></th>';
@@ -1020,11 +1030,15 @@
             if (this.container.find('input[name=daterangepicker_start]').is(":focus") || this.container.find('input[name=daterangepicker_end]').is(":focus"))
                 return;
 
-            this.container.find('input[name=daterangepicker_start]').val(this.startDate.format(this.locale.format));
+            if (this.showLeftMonthOnly && this.endDate) {
+                this.container.find('input[name=daterangepicker_start]').val(this.startDate.format(this.locale.format) + this.locale.separator + this.endDate.format(this.locale.format));
+                return;
+            }
+          this.container.find('input[name=daterangepicker_start]').val(this.startDate.format(this.locale.format));
             if (this.endDate)
                 this.container.find('input[name=daterangepicker_end]').val(this.endDate.format(this.locale.format));
 
-            if (this.singleDatePicker || (this.endDate && (this.startDate.isBefore(this.endDate) || this.startDate.isSame(this.endDate)))) {
+            if (this.singleDatePicker || this.showLeftMonthOnly || (this.endDate && (this.startDate.isBefore(this.endDate) || this.startDate.isSame(this.endDate)))) {
                 this.container.find('button.applyBtn').removeAttr('disabled');
             } else {
                 this.container.find('button.applyBtn').attr('disabled', 'disabled');
@@ -1187,6 +1201,9 @@
 
             if (label == this.locale.customRangeLabel) {
                 this.updateView();
+            } else if (this.showLeftMonthOnly) {
+                var dates = this.ranges[label];
+                this.container.find('input[name=daterangepicker_start]').val(dates[0].format(this.locale.format) + this.locale.separator + dates[1].format(this.locale.format));
             } else {
                 var dates = this.ranges[label];
                 this.container.find('input[name=daterangepicker_start]').val(dates[0].format(this.locale.format));
@@ -1257,7 +1274,9 @@
             var date = cal.hasClass('left') ? this.leftCalendar.calendar[row][col] : this.rightCalendar.calendar[row][col];
 
             if (this.endDate && !this.container.find('input[name=daterangepicker_start]').is(":focus")) {
-                this.container.find('input[name=daterangepicker_start]').val(date.format(this.locale.format));
+                if (!this.showLeftMonthOnly) {
+                    this.container.find('input[name=daterangepicker_start]').val(date.format(this.locale.format));
+                }
             } else if (!this.endDate && !this.container.find('input[name=daterangepicker_end]').is(":focus")) {
                 this.container.find('input[name=daterangepicker_end]').val(date.format(this.locale.format));
             }
@@ -1492,8 +1511,16 @@
 
         formInputsChanged: function(e) {
             var isRight = $(e.target).closest('.calendar').hasClass('right');
-            var start = moment(this.container.find('input[name="daterangepicker_start"]').val(), this.locale.format);
-            var end = moment(this.container.find('input[name="daterangepicker_end"]').val(), this.locale.format);
+
+            var start, end
+            if (this.showLeftMonthOnly) {
+                dates = this.container.find('input[name="daterangepicker_start"]').val().split(this.locale.separator)
+                start = moment(dates[0], this.locale.format)
+                end = moment(dates[1], this.locale.format)
+            } else {
+                start = moment(this.container.find('input[name="daterangepicker_start"]').val(), this.locale.format);
+                end = moment(this.container.find('input[name="daterangepicker_end"]').val(), this.locale.format);
+            }
 
             if (start.isValid() && end.isValid()) {
 
